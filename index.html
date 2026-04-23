@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的世界早读大战苦力怕</title>
+  <style>
+    :root {
+      --sky: #6fc9ff;
+      --grass: #4caf50;
+      --grass-dark: #2d7a32;
+      --panel: #173646;
+      --panel-border: #82d9ff;
+      --text: #ecfbff;
+      --warn: #ffd166;
+      --ok: #77ff9f;
+      --danger: #ff5d5d;
+      --btn: #ffb703;
+      --btn2: #8dff6c;
+      --pixel-shadow: #00000055;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, var(--sky) 0 58%, var(--grass) 58% 100%);
+      overflow-x: hidden;
+    }
+
+    .pixel-font {
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 3px 0 #145679, 0 6px 0 #0f3d57;
+      font-weight: 900;
+    }
+
+    .app {
+      width: min(1080px, 95vw);
+      margin: 18px auto;
+      display: grid;
+      gap: 12px;
+    }
+
+    .banner {
+      padding: 14px 16px;
+      border: 4px solid #d5f2ff;
+      border-radius: 8px;
+      background: #0f3d57d9;
+      text-align: center;
+      font-size: clamp(20px, 3vw, 34px);
+    }
+
+    .panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      background: #173646d9;
+      border: 3px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .card {
+      background: #0f2a37;
+      border: 2px solid #4fb6eb;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .label {
+      font-size: 13px;
+      opacity: .92;
+    }
+
+    .value {
+      margin-top: 6px;
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 900;
+      color: #fff2a8;
+      text-shadow: 0 2px 0 #7c6e24;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      background: #173646d9;
+      border: 3px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .control-box {
+      background: #0f2a37;
+      border: 2px solid #4fb6eb;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-box label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #c2ebff;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 20px;
+      border-radius: 8px;
+      border: 2px solid #84dfff;
+      background: #08212f;
+      color: #dff8ff;
+      font-weight: 800;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      border: 3px solid #fff5bb;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 18px;
+      font-weight: 900;
+      color: #282100;
+      background: var(--btn);
+      cursor: pointer;
+      min-width: 140px;
+      box-shadow: 0 4px 0 #9c7018;
+    }
+
+    button:active { transform: translateY(2px); }
+
+    .good { background: var(--btn2); border-color: #e0ffd6; box-shadow: 0 4px 0 #4f8938; }
+    .bad { background: #ff7b7b; border-color: #ffd7d7; box-shadow: 0 4px 0 #964646; }
+
+    .arena {
+      position: relative;
+      min-height: 420px;
+      border: 4px solid #d5f2ff;
+      border-radius: 10px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, #8cd7ff 0 60%, #55b95b 60% 100%);
+      box-shadow: 0 8px 30px #00000033;
+    }
+    .arena::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 55%, #00000030 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .status {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f2a37d9;
+      border: 2px solid #79d6ff;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 15px;
+      font-weight: 700;
+      z-index: 10;
+      text-align: center;
+    }
+
+    .status.ok { color: var(--ok); }
+    .status.warn { color: var(--warn); }
+    .status.low { color: var(--danger); }
+    .hearts {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      z-index: 11;
+      display: flex;
+      gap: 4px;
+      font-size: 20px;
+      text-shadow: 0 2px 0 #7a1313;
+    }
+    .fuse-box {
+      position: absolute;
+      right: 12px;
+      top: 10px;
+      z-index: 11;
+      width: min(260px, 45vw);
+      background: #0f2a37e0;
+      border: 2px solid #79d6ff;
+      border-radius: 8px;
+      padding: 6px 8px;
+    }
+    .fuse-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #d6f3ff;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+    .fuse-track {
+      width: 100%;
+      height: 14px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #133140;
+      border: 1px solid #3f6980;
+    }
+    .fuse-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #6cff8e, #ffd166 60%, #ff5d5d);
+      transition: width .12s linear;
+    }
+    .fuse-time {
+      font-size: 12px;
+      margin-top: 4px;
+      text-align: center;
+      color: #fff5bb;
+      font-weight: 800;
+    }
+
+    .ground-grid {
+      position: absolute;
+      inset: 60% 0 0 0;
+      background:
+        linear-gradient(90deg, #00000011 1px, transparent 1px),
+        linear-gradient(#00000015 1px, transparent 1px),
+        linear-gradient(180deg, #5bbf5f, #4ca950);
+      background-size: 28px 28px, 28px 28px, 100% 100%;
+    }
+
+    .zombie-wrap {
+      position: absolute;
+      left: 50%;
+      top: 44%;
+      transform: translate(-50%, -50%) scale(1);
+      transition: transform 0.3s ease;
+      z-index: 6;
+    }
+
+    .zombie {
+      width: 160px;
+      height: 220px;
+      position: relative;
+      image-rendering: pixelated;
+      animation: creeperBob 1s infinite ease-in-out;
+      transform-origin: center bottom;
+      filter: drop-shadow(0 10px 0 var(--pixel-shadow));
+    }
+
+    .zombie.flash { animation: zombieHit 0.32s ease; }
+    .zombie.attack { animation: creeperAttack 0.38s ease; }
+
+    @keyframes creeperBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(6px); }
+    }
+
+    @keyframes creeperAttack {
+      0% { transform: translateY(0) scale(1); filter: brightness(1); }
+      40% { transform: translateY(8px) scale(1.12); filter: brightness(1.3) saturate(1.5); }
+      100% { transform: translateY(0) scale(1); filter: brightness(1); }
+    }
+
+    @keyframes zombieHit {
+      0% { filter: drop-shadow(0 10px 0 var(--pixel-shadow)); }
+      50% { filter: hue-rotate(-55deg) saturate(2.2) brightness(1.25); }
+      100% { filter: drop-shadow(0 10px 0 var(--pixel-shadow)); }
+    }
+
+    .pixel {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+    }
+
+    .green { background: #65c27b; }
+    .green2 { background: #4da965; }
+    .teal { background: #3f948d; }
+    .shirt { background: #5a8ddf; }
+    .pant { background: #654d8a; }
+    .dark { background: #1f3346; }
+    .eye { background: #ebfbff; }
+
+    .exp {
+      position: absolute;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%) scale(0.5);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ecff9f, #5fe85f);
+      box-shadow: 0 0 16px #9dff9d;
+      opacity: 0;
+      z-index: 8;
+      pointer-events: none;
+    }
+
+    .exp.show {
+      animation: expPop 0.9s ease forwards;
+    }
+
+    @keyframes expPop {
+      0% { opacity: 0; transform: translate(-50%, -40%) scale(0.3); }
+      35% { opacity: 1; transform: translate(-50%, -80%) scale(1.2); }
+      100% { opacity: 0; transform: translate(-50%, -150%) scale(0.8); }
+    }
+
+    .crosshair {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 28px;
+      height: 28px;
+      z-index: 12;
+      pointer-events: none;
+    }
+    .crosshair::before,
+    .crosshair::after {
+      content: "";
+      position: absolute;
+      background: #ffffffd0;
+      box-shadow: 0 0 0 2px #00000055;
+    }
+    .crosshair::before {
+      width: 2px;
+      height: 28px;
+      left: 13px;
+      top: 0;
+    }
+    .crosshair::after {
+      width: 28px;
+      height: 2px;
+      left: 0;
+      top: 13px;
+    }
+
+    .steve-arm-wrap {
+      position: absolute;
+      right: 22px;
+      bottom: -8px;
+      width: 280px;
+      height: 210px;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .steve-arm {
+      position: absolute;
+      right: 4px;
+      bottom: 8px;
+      width: 220px;
+      height: 70px;
+      transform-origin: 190px 46px;
+      transform: rotate(-20deg);
+      transition: transform .15s ease;
+      filter: drop-shadow(-2px 5px 0 #00000055);
+    }
+
+    .steve-arm.swing {
+      animation: swing 0.28s ease;
+    }
+
+    @keyframes swing {
+      0% { transform: rotate(-20deg); }
+      40% { transform: rotate(-48deg); }
+      100% { transform: rotate(-20deg); }
+    }
+
+    .arm-skin, .arm-shirt, .sword, .sword-tip {
+      position: absolute;
+      image-rendering: pixelated;
+    }
+
+    .arm-skin {
+      left: 10px;
+      top: 17px;
+      width: 62px;
+      height: 30px;
+      background: #d9a16d;
+      border: 2px solid #9f6b3f;
+    }
+
+    .arm-shirt {
+      left: 58px;
+      top: 14px;
+      width: 68px;
+      height: 36px;
+      background: #4a7eea;
+      border: 2px solid #2a4e8f;
+    }
+
+    .sword {
+      left: 116px;
+      top: 24px;
+      width: 86px;
+      height: 16px;
+      background: #cde9ff;
+      border: 2px solid #6c8ca3;
+    }
+
+    .sword-tip {
+      left: 198px;
+      top: 20px;
+      width: 22px;
+      height: 24px;
+      background: #cde9ff;
+      border: 2px solid #6c8ca3;
+    }
+
+    .game-over {
+      position: absolute;
+      inset: 0;
+      background: #ff000066;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 30;
+      animation: dangerBlink 0.45s linear infinite;
+    }
+
+    .game-over.show { display: flex; }
+
+    @keyframes dangerBlink {
+      0%, 100% { background: #ff000045; }
+      50% { background: #ff000080; }
+    }
+    .explosion {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, #ffffffcc 0 15%, #9dff8f88 15% 35%, #4ef26066 35% 60%, transparent 60%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 20;
+    }
+    .explosion.show {
+      animation: boom 0.35s ease;
+    }
+    @keyframes boom {
+      0% { opacity: 0; transform: scale(0.8); }
+      30% { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 0; transform: scale(1.2); }
+    }
+
+    .go-text {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 4px 0 #8b1111;
+      text-align: center;
+    }
+
+    .tiny {
+      text-align: center;
+      color: #e6f8ff;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 680px) {
+      .zombie { width: 130px; height: 186px; }
+      .pixel { width: 16px; height: 16px; }
+      button { width: 100%; }
+      .btn-row { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="banner pixel-font">大声朗读，击退苦力怕！你的书声就是武器！</section>
+
+    <section class="panel">
+      <div class="card">
+        <div class="label">实时分贝 (Decibel Level)</div>
+        <div class="value" id="dbValue">0 dB</div>
+      </div>
+      <div class="card">
+        <div class="label">达标持续时间</div>
+        <div class="value" id="hitTimer">0.0 s</div>
+      </div>
+      <div class="card">
+        <div class="label">低声持续时间 (&lt;15dB)</div>
+        <div class="value" id="lowTimer">0.0 s</div>
+      </div>
+      <div class="card">
+        <div class="label">本轮攻击次数</div>
+        <div class="value" id="attackCount">0 / 5</div>
+      </div>
+      <div class="card">
+        <div class="label">苦力怕等级</div>
+        <div class="value" id="zombieLevel">1</div>
+      </div>
+      <div class="card">
+        <div class="label">玩家生命值</div>
+        <div class="value" id="hpValue">5</div>
+      </div>
+    </section>
+
+    <section class="controls">
+      <div class="control-box">
+        <label for="targetDb">目标分贝 (Target dB)</label>
+        <input id="targetDb" type="number" min="20" max="95" value="60" />
+      </div>
+      <div class="control-box">
+        <label for="durationSec">持续时间 (Duration, 秒)</label>
+        <input id="durationSec" type="number" min="1" max="10" value="2" />
+      </div>
+      <div class="control-box">
+        <label>操作</label>
+        <div class="btn-row">
+          <button id="calibrateBtn">分贝校准</button>
+          <button id="startBtn" class="good">启动监测</button>
+          <button id="stopBtn" class="bad">停止</button>
+          <button id="restartBtn">重启战斗</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="arena" id="arena">
+      <div class="status warn" id="statusText">点击“启动监测”，允许麦克风后开始战斗。</div>
+      <div class="hearts" id="hearts">❤ ❤ ❤ ❤ ❤</div>
+      <div class="fuse-box">
+        <div class="fuse-label">苦力怕爆炸倒计时</div>
+        <div class="fuse-track"><div class="fuse-fill" id="fuseFill"></div></div>
+        <div class="fuse-time" id="fuseTime">0.0 / 10.0 s</div>
+      </div>
+      <div class="ground-grid"></div>
+      <div class="crosshair"></div>
+
+      <div class="zombie-wrap" id="zombieWrap">
+        <div class="zombie" id="zombie">
+          <span class="pixel green2" style="left: 40px; top: 0;"></span>
+          <span class="pixel green2" style="left: 60px; top: 0;"></span>
+          <span class="pixel green" style="left: 80px; top: 0;"></span>
+          <span class="pixel green" style="left: 40px; top: 20px;"></span>
+          <span class="pixel dark" style="left: 60px; top: 20px;"></span>
+          <span class="pixel dark" style="left: 80px; top: 20px;"></span>
+          <span class="pixel green2" style="left: 40px; top: 40px;"></span>
+          <span class="pixel dark" style="left: 60px; top: 40px;"></span>
+          <span class="pixel dark" style="left: 80px; top: 40px;"></span>
+          <span class="pixel green2" style="left: 40px; top: 60px;"></span>
+          <span class="pixel dark" style="left: 60px; top: 60px;"></span>
+          <span class="pixel dark" style="left: 80px; top: 60px;"></span>
+          <span class="pixel green2" style="left: 40px; top: 80px;"></span>
+          <span class="pixel green" style="left: 60px; top: 80px;"></span>
+          <span class="pixel green2" style="left: 80px; top: 80px;"></span>
+          <span class="pixel green" style="left: 60px; top: 100px;"></span>
+          <span class="pixel green2" style="left: 40px; top: 120px;"></span>
+          <span class="pixel green2" style="left: 80px; top: 120px;"></span>
+          <span class="pixel green2" style="left: 40px; top: 140px;"></span>
+          <span class="pixel green2" style="left: 80px; top: 140px;"></span>
+        </div>
+      </div>
+
+      <div class="exp" id="expOrb"></div>
+
+      <div class="steve-arm-wrap">
+        <div class="steve-arm" id="steveArm">
+          <div class="arm-skin"></div>
+          <div class="arm-shirt"></div>
+          <div class="sword"></div>
+          <div class="sword-tip"></div>
+        </div>
+      </div>
+
+      <div class="explosion" id="explosionFx"></div>
+      <div class="game-over" id="gameOver">
+        <div class="go-text pixel-font">你被苦力怕炸飞了！</div>
+        <button id="overlayRestartBtn">点击重启</button>
+      </div>
+    </section>
+
+    <div class="tiny">提示：教室环境不同，建议先把目标分贝设置在 45-70 之间再微调。</div>
+  </main>
+
+  <script>
+    const targetDbInput = document.getElementById("targetDb");
+    const durationSecInput = document.getElementById("durationSec");
+    const calibrateBtn = document.getElementById("calibrateBtn");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const overlayRestartBtn = document.getElementById("overlayRestartBtn");
+
+    const dbValue = document.getElementById("dbValue");
+    const hitTimer = document.getElementById("hitTimer");
+    const lowTimer = document.getElementById("lowTimer");
+    const attackCountEl = document.getElementById("attackCount");
+    const zombieLevelEl = document.getElementById("zombieLevel");
+    const hpValueEl = document.getElementById("hpValue");
+    const heartsEl = document.getElementById("hearts");
+    const fuseFillEl = document.getElementById("fuseFill");
+    const fuseTimeEl = document.getElementById("fuseTime");
+    const statusText = document.getElementById("statusText");
+    const zombie = document.getElementById("zombie");
+    const zombieWrap = document.getElementById("zombieWrap");
+    const expOrb = document.getElementById("expOrb");
+    const steveArm = document.getElementById("steveArm");
+    const gameOverEl = document.getElementById("gameOver");
+    const explosionFx = document.getElementById("explosionFx");
+
+    const ATTACKS_PER_KILL = 5;
+    const LOW_DB_LIMIT = 15;
+    const LOW_DB_FAIL_SECONDS = 10;
+
+    let audioCtx = null;
+    let analyser = null;
+    let sourceNode = null;
+    let stream = null;
+    let timeData = null;
+    let running = false;
+    let rafId = null;
+    let lastTick = 0;
+
+    let holdTime = 0;
+    let lowTime = 0;
+    let attackCount = 0;
+    let zombieLevel = 1;
+    let zombieScale = 1;
+    let zombieApproach = 0;
+    let gameOver = false;
+    let smoothedDb = 0;
+    let noiseFloorDb = 25;
+    let calibrated = false;
+    let playerHp = 5;
+    let lowAttackCooldown = 0;
+
+    function clamp(n, min, max) {
+      return Math.max(min, Math.min(max, n));
+    }
+
+    function getTargetDb() {
+      const n = Number(targetDbInput.value);
+      return clamp(Number.isFinite(n) ? n : 60, 20, 95);
+    }
+
+    function getDuration() {
+      const n = Number(durationSecInput.value);
+      return clamp(Number.isFinite(n) ? n : 2, 1, 10);
+    }
+
+    function setStatus(text, cls) {
+      statusText.className = "status";
+      if (cls) statusText.classList.add(cls);
+      statusText.textContent = text;
+    }
+
+    function updateHud() {
+      const fusePercent = clamp((lowTime / LOW_DB_FAIL_SECONDS) * 100, 0, 100);
+      attackCountEl.textContent = `${attackCount} / ${ATTACKS_PER_KILL}`;
+      zombieLevelEl.textContent = String(zombieLevel);
+      hpValueEl.textContent = String(playerHp);
+      heartsEl.textContent = "❤ ".repeat(playerHp).trim() || "💀";
+      fuseFillEl.style.width = `${fusePercent.toFixed(1)}%`;
+      fuseTimeEl.textContent = `${lowTime.toFixed(1)} / ${LOW_DB_FAIL_SECONDS.toFixed(1)} s`;
+      hitTimer.textContent = `${holdTime.toFixed(1)} s`;
+      lowTimer.textContent = `${lowTime.toFixed(1)} s`;
+    }
+
+    function renderZombieTransform() {
+      const forward = zombieApproach * 1.5;
+      zombieWrap.style.transform = `translate(-50%, -50%) translateY(${forward}px) scale(${zombieScale})`;
+    }
+
+    function swingSword() {
+      steveArm.classList.remove("swing");
+      void steveArm.offsetWidth;
+      steveArm.classList.add("swing");
+    }
+
+    function zombieHitEffect() {
+      zombie.classList.remove("flash");
+      void zombie.offsetWidth;
+      zombie.classList.add("flash");
+    }
+
+    function creeperAttackEffect() {
+      zombie.classList.remove("attack");
+      void zombie.offsetWidth;
+      zombie.classList.add("attack");
+      explosionFx.classList.remove("show");
+      void explosionFx.offsetWidth;
+      explosionFx.classList.add("show");
+    }
+
+    function showExp() {
+      expOrb.classList.remove("show");
+      void expOrb.offsetWidth;
+      expOrb.classList.add("show");
+    }
+
+    function resetBattleState() {
+      holdTime = 0;
+      lowTime = 0;
+      attackCount = 0;
+      zombieLevel = 1;
+      zombieScale = 1;
+      zombieApproach = 0;
+      gameOver = false;
+      smoothedDb = 0;
+      playerHp = 5;
+      lowAttackCooldown = 0;
+      gameOverEl.classList.remove("show");
+      dbValue.textContent = "0 dB";
+      setStatus("战斗已重置，点击“启动监测”继续。", "warn");
+      renderZombieTransform();
+      updateHud();
+    }
+
+    function killAndRespawnZombie() {
+      showExp();
+      attackCount = 0;
+      zombieLevel += 1;
+      zombieScale = clamp(1 + zombieLevel * 0.06, 1, 2.1);
+      zombieApproach = clamp(zombieApproach - 8, 0, 140);
+      setStatus(`击败苦力怕！刷新 Lv.${zombieLevel} 苦力怕（更强/更快）。`, "ok");
+      renderZombieTransform();
+      updateHud();
+    }
+
+    function triggerAttack() {
+      swingSword();
+      zombieHitEffect();
+      attackCount += 1;
+      holdTime = 0;
+      lowTime = 0;
+
+      if (attackCount >= ATTACKS_PER_KILL) {
+        killAndRespawnZombie();
+      } else {
+        setStatus(`命中苦力怕！还需 ${ATTACKS_PER_KILL - attackCount} 次攻击击败。`, "ok");
+        updateHud();
+      }
+    }
+
+    function triggerDefeat() {
+      gameOver = true;
+      running = false;
+      gameOverEl.classList.add("show");
+      setStatus("你已被苦力怕击败！点击重启。", "low");
+      stopMonitoring(false);
+    }
+
+    function calcDbFromFloatData(arr) {
+      let sum = 0;
+      for (let i = 0; i < arr.length; i += 1) {
+        sum += arr[i] * arr[i];
+      }
+      const rms = Math.sqrt(sum / arr.length);
+      if (rms < 1e-7) return 0;
+      const dbfs = 20 * Math.log10(rms); // usually negative
+      const mapped = clamp(dbfs + 100, 0, 100); // classroom-friendly scale
+      return mapped;
+    }
+
+    function getCalibratedDb(rawDb) {
+      const adjusted = rawDb - noiseFloorDb + LOW_DB_LIMIT;
+      return clamp(adjusted, 0, 100);
+    }
+
+    async function calibrateNoise() {
+      if (running) {
+        setStatus("请先停止监测，再进行校准。", "warn");
+        return;
+      }
+      let localCtx = null;
+      let localAnalyser = null;
+      let localStream = null;
+      let localSource = null;
+      try {
+        setStatus("校准中：请保持安静 2 秒...", "warn");
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        localCtx = new (window.AudioContext || window.webkitAudioContext)();
+        localAnalyser = localCtx.createAnalyser();
+        localAnalyser.fftSize = 2048;
+        localSource = localCtx.createMediaStreamSource(localStream);
+        localSource.connect(localAnalyser);
+        const localData = new Float32Array(localAnalyser.fftSize);
+        const samples = [];
+        const start = performance.now();
+        while (performance.now() - start < 2000) {
+          localAnalyser.getFloatTimeDomainData(localData);
+          samples.push(calcDbFromFloatData(localData));
+          await new Promise((resolve) => setTimeout(resolve, 40));
+        }
+        const avg = samples.reduce((a, b) => a + b, 0) / samples.length;
+        noiseFloorDb = clamp(avg, 5, 50);
+        calibrated = true;
+        setStatus(`校准完成，环境底噪约 ${Math.round(noiseFloorDb)} dB。`, "ok");
+      } catch (err) {
+        setStatus("校准失败，请检查麦克风权限。", "low");
+      } finally {
+        if (localSource) localSource.disconnect();
+        if (localStream) localStream.getTracks().forEach((t) => t.stop());
+        if (localCtx) localCtx.close();
+      }
+    }
+
+    function processDb(db, dt) {
+      const target = getTargetDb();
+      const needSeconds = getDuration();
+      dbValue.textContent = `${Math.round(db)} dB`;
+
+      if (db >= target) {
+        holdTime += dt;
+        lowTime = Math.max(0, lowTime - dt * 3);
+        lowAttackCooldown = 0;
+        setStatus(`火力压制中：${Math.round(db)} dB，持续 ${needSeconds}s 可触发攻击！`, "ok");
+        swingSword();
+        if (holdTime >= needSeconds) {
+          triggerAttack();
+        }
+      } else if (db < LOW_DB_LIMIT) {
+        lowTime += dt;
+        holdTime = 0;
+        lowAttackCooldown += dt;
+        zombieApproach = clamp(zombieApproach + dt * (8 + zombieLevel * 1.2), 0, 180);
+        zombieScale = clamp(zombieScale + dt * 0.03, 1, 2.2);
+        renderZombieTransform();
+        setStatus("警告：声音低于 15 dB，苦力怕正在逼近并攻击！", "low");
+
+        if (lowAttackCooldown >= 2) {
+          lowAttackCooldown = 0;
+          playerHp = clamp(playerHp - 1, 0, 5);
+          creeperAttackEffect();
+          updateHud();
+        }
+
+        if ((lowTime >= LOW_DB_FAIL_SECONDS || playerHp <= 0) && !gameOver) {
+          triggerDefeat();
+          return;
+        }
+      } else {
+        holdTime = 0;
+        lowTime = Math.max(0, lowTime - dt * 1.2);
+        lowAttackCooldown = 0;
+        setStatus(`当前 ${Math.round(db)} dB，再大声一点达到 ${target} dB！`, "warn");
+      }
+
+      updateHud();
+    }
+
+    function loop(ts) {
+      if (!running || gameOver) return;
+      if (!lastTick) lastTick = ts;
+      const dt = Math.min((ts - lastTick) / 1000, 0.08);
+      lastTick = ts;
+
+      analyser.getFloatTimeDomainData(timeData);
+      const rawDb = calcDbFromFloatData(timeData);
+      const instantDb = getCalibratedDb(rawDb);
+      smoothedDb = smoothedDb ? smoothedDb * 0.82 + instantDb * 0.18 : instantDb;
+      processDb(smoothedDb, dt);
+
+      rafId = requestAnimationFrame(loop);
+    }
+
+    async function startMonitoring() {
+      if (running || gameOver) return;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+      } catch (err) {
+        setStatus("麦克风授权失败，请允许浏览器访问麦克风。", "low");
+        return;
+      }
+
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.55;
+      sourceNode = audioCtx.createMediaStreamSource(stream);
+      sourceNode.connect(analyser);
+      timeData = new Float32Array(analyser.fftSize);
+
+      running = true;
+      lastTick = 0;
+      setStatus(calibrated ? "监测已启动！开始用朗读声击退苦力怕。" : "监测已启动！建议先点分贝校准再开始。", "ok");
+      rafId = requestAnimationFrame(loop);
+    }
+
+    function stopMonitoring(showText = true) {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+      lastTick = 0;
+      holdTime = 0;
+      lowTime = 0;
+      updateHud();
+
+      if (sourceNode) sourceNode.disconnect();
+      if (analyser) analyser.disconnect();
+      if (stream) stream.getTracks().forEach((t) => t.stop());
+      if (audioCtx) audioCtx.close();
+
+      sourceNode = null;
+      analyser = null;
+      stream = null;
+      audioCtx = null;
+      timeData = null;
+
+      if (showText && !gameOver) {
+        setStatus("监测已停止。", "warn");
+      }
+    }
+
+    calibrateBtn.addEventListener("click", calibrateNoise);
+    startBtn.addEventListener("click", startMonitoring);
+    stopBtn.addEventListener("click", () => stopMonitoring(true));
+    restartBtn.addEventListener("click", () => {
+      stopMonitoring(false);
+      resetBattleState();
+    });
+    overlayRestartBtn.addEventListener("click", () => {
+      stopMonitoring(false);
+      resetBattleState();
+    });
+
+    targetDbInput.addEventListener("change", () => {
+      targetDbInput.value = String(getTargetDb());
+    });
+    durationSecInput.addEventListener("change", () => {
+      durationSecInput.value = String(getDuration());
+    });
+
+    updateHud();
+    renderZombieTransform();
+  </script>
+</body>
+</html>

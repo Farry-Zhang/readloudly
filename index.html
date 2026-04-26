@@ -259,13 +259,90 @@
       height: 220px;
       position: relative;
       image-rendering: pixelated;
-      animation: creeperBob 1s infinite ease-in-out;
+      animation: creeperBob var(--bob-speed, 1s) infinite ease-in-out;
       transform-origin: center bottom;
       filter: drop-shadow(0 10px 0 var(--pixel-shadow));
+      transition: filter .25s ease, transform .25s ease;
+    }
+
+    .zombie::before {
+      content: "";
+      position: absolute;
+      inset: -8px;
+      border-radius: 12px;
+      background: radial-gradient(circle at center, #90ff9f55, #0000 70%);
+      opacity: var(--aura-opacity, 0);
+      transform: scale(var(--aura-scale, 1));
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .zombie::after {
+      content: "";
+      position: absolute;
+      left: 20px;
+      top: 8px;
+      width: 120px;
+      height: 170px;
+      border: 2px solid #c6ffc855;
+      box-shadow: inset 0 0 18px #d7ffd444;
+      opacity: var(--armor-opacity, 0);
+      pointer-events: none;
     }
 
     .zombie.flash { animation: zombieHit 0.32s ease; }
     .zombie.attack { animation: creeperAttack 0.38s ease; }
+
+    .creeper-head,
+    .creeper-body,
+    .creeper-leg {
+      position: absolute;
+      image-rendering: pixelated;
+      border: 2px solid #1f5b2a;
+      box-shadow: inset 0 0 0 2px #00000022;
+    }
+
+    .creeper-head {
+      left: 28px;
+      top: 4px;
+      width: 104px;
+      height: 104px;
+      background:
+        linear-gradient(90deg, #7ccc74 0 25%, #65b960 25% 50%, #4fa54b 50% 75%, #74c96d 75% 100%),
+        linear-gradient(#0000 0 100%);
+    }
+
+    .creeper-face-eye,
+    .creeper-face-mouth {
+      position: absolute;
+      background: #132417;
+    }
+
+    .creeper-face-eye.left { left: 18px; top: 24px; width: 22px; height: 22px; }
+    .creeper-face-eye.right { right: 18px; top: 24px; width: 22px; height: 22px; }
+    .creeper-face-mouth.top { left: 32px; top: 50px; width: 40px; height: 18px; }
+    .creeper-face-mouth.left { left: 32px; top: 66px; width: 16px; height: 30px; }
+    .creeper-face-mouth.right { left: 56px; top: 66px; width: 16px; height: 30px; }
+
+    .creeper-body {
+      left: 40px;
+      top: 106px;
+      width: 80px;
+      height: 62px;
+      background:
+        linear-gradient(90deg, #73c66c 0 33%, #5ab555 33% 66%, #6cc464 66% 100%);
+    }
+
+    .creeper-leg {
+      width: 26px;
+      height: 50px;
+      top: 164px;
+      background: linear-gradient(180deg, #66bc5f 0 50%, #4ea34a 50% 100%);
+    }
+    .creeper-leg.l1 { left: 30px; }
+    .creeper-leg.l2 { left: 60px; }
+    .creeper-leg.l3 { left: 90px; }
+    .creeper-leg.l4 { left: 120px; }
 
     @keyframes creeperBob {
       0%, 100% { transform: translateY(0); }
@@ -297,6 +374,17 @@
     .pant { background: #654d8a; }
     .dark { background: #1f3346; }
     .eye { background: #ebfbff; }
+    .green3 { background: #357f4a; }
+    .green4 { background: #89e79f; }
+    .mouth { background: #102018; }
+    .leg { background: #2f7a43; }
+    .leg2 { background: #57b56f; }
+
+    .zombie[data-form="0"] .creeper-face-eye { background: #132417; }
+    .zombie[data-form="1"] .creeper-face-eye { background: #2a1f0f; }
+    .zombie[data-form="2"] .creeper-face-eye { background: #2b1010; }
+    .zombie[data-form="3"] .creeper-face-eye { background: #0f2421; }
+    .zombie[data-form="4"] .creeper-face-eye { background: #241229; }
 
     .exp {
       position: absolute;
@@ -477,6 +565,46 @@
       font-weight: 600;
     }
 
+    .score-board {
+      margin-top: 6px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid #79d6ff;
+      background: #0f2a37d9;
+      color: #f4fbff;
+      font-size: 14px;
+      line-height: 1.45;
+      min-height: 48px;
+    }
+
+    .score-history {
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid #79d6ff;
+      background: #0b2330e0;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .score-history-title {
+      font-weight: 900;
+      color: #d8f4ff;
+      margin-bottom: 6px;
+    }
+
+    .score-history-best {
+      color: #fff2a8;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .score-history-list {
+      margin: 0;
+      padding-left: 18px;
+      color: #ecfbff;
+    }
+
     @media (max-width: 680px) {
       .zombie { width: 130px; height: 186px; }
       .pixel { width: 16px; height: 16px; }
@@ -514,6 +642,10 @@
         <div class="label">玩家生命值</div>
         <div class="value" id="hpValue">5</div>
       </div>
+      <div class="card">
+        <div class="label">朗读综合评分</div>
+        <div class="value" id="readingScore">--</div>
+      </div>
     </section>
 
     <section class="controls">
@@ -549,26 +681,18 @@
 
       <div class="zombie-wrap" id="zombieWrap">
         <div class="zombie" id="zombie">
-          <span class="pixel green2" style="left: 40px; top: 0;"></span>
-          <span class="pixel green2" style="left: 60px; top: 0;"></span>
-          <span class="pixel green" style="left: 80px; top: 0;"></span>
-          <span class="pixel green" style="left: 40px; top: 20px;"></span>
-          <span class="pixel dark" style="left: 60px; top: 20px;"></span>
-          <span class="pixel dark" style="left: 80px; top: 20px;"></span>
-          <span class="pixel green2" style="left: 40px; top: 40px;"></span>
-          <span class="pixel dark" style="left: 60px; top: 40px;"></span>
-          <span class="pixel dark" style="left: 80px; top: 40px;"></span>
-          <span class="pixel green2" style="left: 40px; top: 60px;"></span>
-          <span class="pixel dark" style="left: 60px; top: 60px;"></span>
-          <span class="pixel dark" style="left: 80px; top: 60px;"></span>
-          <span class="pixel green2" style="left: 40px; top: 80px;"></span>
-          <span class="pixel green" style="left: 60px; top: 80px;"></span>
-          <span class="pixel green2" style="left: 80px; top: 80px;"></span>
-          <span class="pixel green" style="left: 60px; top: 100px;"></span>
-          <span class="pixel green2" style="left: 40px; top: 120px;"></span>
-          <span class="pixel green2" style="left: 80px; top: 120px;"></span>
-          <span class="pixel green2" style="left: 40px; top: 140px;"></span>
-          <span class="pixel green2" style="left: 80px; top: 140px;"></span>
+          <div class="creeper-head">
+            <div class="creeper-face-eye left"></div>
+            <div class="creeper-face-eye right"></div>
+            <div class="creeper-face-mouth top"></div>
+            <div class="creeper-face-mouth left"></div>
+            <div class="creeper-face-mouth right"></div>
+          </div>
+          <div class="creeper-body"></div>
+          <div class="creeper-leg l1"></div>
+          <div class="creeper-leg l2"></div>
+          <div class="creeper-leg l3"></div>
+          <div class="creeper-leg l4"></div>
         </div>
       </div>
 
@@ -590,6 +714,15 @@
       </div>
     </section>
 
+    <section class="score-board" id="scoreDetail">评分说明：开始朗读后，点击“停止”可生成语调/语速/感情分数。</section>
+    <section class="score-history" id="scoreHistoryPanel">
+      <div class="score-history-title">评分历史</div>
+      <div class="score-history-best" id="bestScoreText">最高分：暂无</div>
+      <ol class="score-history-list" id="scoreHistoryList">
+        <li>暂无记录，先开始一次朗读挑战吧。</li>
+      </ol>
+    </section>
+
     <div class="tiny">提示：教室环境不同，建议先把目标分贝设置在 45-70 之间再微调。</div>
   </main>
 
@@ -608,6 +741,7 @@
     const attackCountEl = document.getElementById("attackCount");
     const zombieLevelEl = document.getElementById("zombieLevel");
     const hpValueEl = document.getElementById("hpValue");
+    const readingScoreEl = document.getElementById("readingScore");
     const heartsEl = document.getElementById("hearts");
     const fuseFillEl = document.getElementById("fuseFill");
     const fuseTimeEl = document.getElementById("fuseTime");
@@ -618,6 +752,9 @@
     const steveArm = document.getElementById("steveArm");
     const gameOverEl = document.getElementById("gameOver");
     const explosionFx = document.getElementById("explosionFx");
+    const scoreDetailEl = document.getElementById("scoreDetail");
+    const bestScoreTextEl = document.getElementById("bestScoreText");
+    const scoreHistoryListEl = document.getElementById("scoreHistoryList");
 
     const ATTACKS_PER_KILL = 5;
     const LOW_DB_LIMIT = 15;
@@ -644,6 +781,18 @@
     let calibrated = false;
     let playerHp = 5;
     let lowAttackCooldown = 0;
+    let sessionSeconds = 0;
+    let sessionDbSamples = 0;
+    let sessionDbSum = 0;
+    let sessionDbSqSum = 0;
+    let sessionEnergySwing = 0;
+    let sessionPrevDb = 0;
+    let sessionZcrSum = 0;
+    let sessionZcrSqSum = 0;
+    let sessionHighEnergyTime = 0;
+    let lastScore = null;
+    let scoreHistory = [];
+    let bestScore = null;
 
     function clamp(n, min, max) {
       return Math.max(min, Math.min(max, n));
@@ -675,6 +824,7 @@
       fuseTimeEl.textContent = `${lowTime.toFixed(1)} / ${LOW_DB_FAIL_SECONDS.toFixed(1)} s`;
       hitTimer.textContent = `${holdTime.toFixed(1)} s`;
       lowTimer.textContent = `${lowTime.toFixed(1)} s`;
+      readingScoreEl.textContent = lastScore ? `${lastScore.total}` : "--";
     }
 
     function renderZombieTransform() {
@@ -709,6 +859,109 @@
       expOrb.classList.add("show");
     }
 
+    function calcZeroCrossingRate(arr) {
+      let crossings = 0;
+      for (let i = 1; i < arr.length; i += 1) {
+        const prev = arr[i - 1];
+        const curr = arr[i];
+        if ((prev >= 0 && curr < 0) || (prev < 0 && curr >= 0)) crossings += 1;
+      }
+      return crossings / arr.length;
+    }
+
+    function scoreByDistance(v, center, halfWidth) {
+      const d = Math.abs(v - center);
+      const ratio = clamp(1 - d / halfWidth, 0, 1);
+      return Math.round(60 + ratio * 40);
+    }
+
+    function scoreByThreshold(v, low, high) {
+      if (v <= low) return Math.round(clamp((v / low) * 75, 0, 75));
+      if (v >= high) return 100;
+      return Math.round(75 + ((v - low) / (high - low)) * 25);
+    }
+
+    function getTimeLabel() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const ss = String(now.getSeconds()).padStart(2, "0");
+      return `${hh}:${mm}:${ss}`;
+    }
+
+    function renderScoreHistory() {
+      if (!bestScore) {
+        bestScoreTextEl.textContent = "最高分：暂无";
+      } else {
+        bestScoreTextEl.textContent =
+          `最高分：${bestScore.total}（语调${bestScore.toneScore}/语速${bestScore.speedScore}/感情${bestScore.emotionScore}，${bestScore.timeLabel}）`;
+      }
+
+      if (scoreHistory.length === 0) {
+        scoreHistoryListEl.innerHTML = "<li>暂无记录，先开始一次朗读挑战吧。</li>";
+        return;
+      }
+
+      scoreHistoryListEl.innerHTML = scoreHistory
+        .map((item) => `<li>${item.timeLabel}｜总分 ${item.total}（语调${item.toneScore} / 语速${item.speedScore} / 感情${item.emotionScore}）</li>`)
+        .join("");
+    }
+
+    function finalizeReadingScore() {
+      if (sessionSeconds < 2 || sessionDbSamples < 20) {
+        scoreDetailEl.textContent = "朗读时间太短，无法准确评分（建议至少朗读 5 秒）。";
+        return null;
+      }
+      const avgDb = sessionDbSum / sessionDbSamples;
+      const variance = Math.max(0, sessionDbSqSum / sessionDbSamples - avgDb * avgDb);
+      const stdDb = Math.sqrt(variance);
+      const avgZcr = sessionZcrSum / sessionDbSamples;
+      const zcrVar = Math.max(0, sessionZcrSqSum / sessionDbSamples - avgZcr * avgZcr);
+      const zcrStd = Math.sqrt(zcrVar);
+      const swingPerSec = sessionEnergySwing / Math.max(sessionSeconds, 0.001);
+      const passionRatio = sessionHighEnergyTime / Math.max(sessionSeconds, 0.001);
+
+      const toneScore = Math.round(
+        clamp(scoreByDistance(stdDb, 8, 8) * 0.55 + scoreByDistance(zcrStd, 0.055, 0.04) * 0.45, 0, 100)
+      );
+      const speedScore = Math.round(
+        clamp(scoreByDistance(avgZcr, 0.12, 0.08) * 0.8 + scoreByDistance(avgDb, 58, 23) * 0.2, 0, 100)
+      );
+      const emotionScore = Math.round(
+        clamp(scoreByThreshold(swingPerSec, 24, 50) * 0.55 + scoreByThreshold(passionRatio, 0.22, 0.55) * 0.45, 0, 100)
+      );
+      const total = Math.round(toneScore * 0.35 + speedScore * 0.3 + emotionScore * 0.35);
+
+      const toneText = toneScore >= 85 ? "语调抑扬很好" : toneScore >= 70 ? "语调较有层次" : "语调偏平，可再有起伏";
+      const speedText = speedScore >= 85 ? "语速稳定自然" : speedScore >= 70 ? "语速基本合适" : "语速略不稳，建议更均匀";
+      const emotionText = emotionScore >= 85 ? "情感投入很强" : emotionScore >= 70 ? "情感表现不错" : "情感表达偏弱，可更有感染力";
+      const styleText = total >= 90 ? "主播级朗读" : total >= 80 ? "沉浸式朗读" : total >= 70 ? "稳健型朗读" : "成长型朗读";
+
+      const timeLabel = getTimeLabel();
+      lastScore = { toneScore, speedScore, emotionScore, total, timeLabel };
+      scoreHistory.unshift(lastScore);
+      if (scoreHistory.length > 10) scoreHistory = scoreHistory.slice(0, 10);
+      if (!bestScore || total > bestScore.total) bestScore = { ...lastScore };
+      renderScoreHistory();
+      scoreDetailEl.textContent =
+        `本次评分 ${total} 分（${styleText}）｜语调 ${toneScore}：${toneText}；语速 ${speedScore}：${speedText}；感情 ${emotionScore}：${emotionText}。`;
+      return lastScore;
+    }
+
+    function renderCreeperForm() {
+      const form = (zombieLevel - 1) % 5;
+      const hue = (zombieLevel - 1) * 8;
+      const aura = clamp(0.08 + zombieLevel * 0.04, 0.08, 0.95);
+      const armor = clamp((zombieLevel - 1) * 0.05, 0, 0.9);
+      const bobSpeed = clamp(1 - zombieLevel * 0.02, 0.52, 1);
+      zombie.dataset.form = String(form);
+      zombie.style.setProperty("--aura-opacity", String(aura));
+      zombie.style.setProperty("--armor-opacity", String(armor));
+      zombie.style.setProperty("--aura-scale", String(1 + zombieLevel * 0.02));
+      zombie.style.setProperty("--bob-speed", `${bobSpeed.toFixed(2)}s`);
+      zombie.style.filter = `hue-rotate(${hue}deg) saturate(${(1 + zombieLevel * 0.03).toFixed(2)}) drop-shadow(0 10px 0 var(--pixel-shadow))`;
+    }
+
     function resetBattleState() {
       holdTime = 0;
       lowTime = 0;
@@ -720,10 +973,22 @@
       smoothedDb = 0;
       playerHp = 5;
       lowAttackCooldown = 0;
+      sessionSeconds = 0;
+      sessionDbSamples = 0;
+      sessionDbSum = 0;
+      sessionDbSqSum = 0;
+      sessionEnergySwing = 0;
+      sessionPrevDb = 0;
+      sessionZcrSum = 0;
+      sessionZcrSqSum = 0;
+      sessionHighEnergyTime = 0;
+      lastScore = null;
+      scoreDetailEl.textContent = "评分说明：开始朗读后，点击“停止”可生成语调/语速/感情分数。";
       gameOverEl.classList.remove("show");
       dbValue.textContent = "0 dB";
       setStatus("战斗已重置，点击“启动监测”继续。", "warn");
       renderZombieTransform();
+      renderCreeperForm();
       updateHud();
     }
 
@@ -733,7 +998,8 @@
       zombieLevel += 1;
       zombieScale = clamp(1 + zombieLevel * 0.06, 1, 2.1);
       zombieApproach = clamp(zombieApproach - 8, 0, 140);
-      setStatus(`击败苦力怕！刷新 Lv.${zombieLevel} 苦力怕（更强/更快）。`, "ok");
+      renderCreeperForm();
+      setStatus(`击败苦力怕！刷新 Lv.${zombieLevel} 变异苦力怕（形态已进化）。`, "ok");
       renderZombieTransform();
       updateHud();
     }
@@ -820,6 +1086,13 @@
       const target = getTargetDb();
       const needSeconds = getDuration();
       dbValue.textContent = `${Math.round(db)} dB`;
+      sessionSeconds += dt;
+      sessionDbSamples += 1;
+      sessionDbSum += db;
+      sessionDbSqSum += db * db;
+      sessionEnergySwing += Math.abs(db - sessionPrevDb);
+      sessionPrevDb = db;
+      if (db >= target + 6) sessionHighEnergyTime += dt;
 
       if (db >= target) {
         holdTime += dt;
@@ -869,6 +1142,9 @@
       analyser.getFloatTimeDomainData(timeData);
       const rawDb = calcDbFromFloatData(timeData);
       const instantDb = getCalibratedDb(rawDb);
+      const zcr = calcZeroCrossingRate(timeData);
+      sessionZcrSum += zcr;
+      sessionZcrSqSum += zcr * zcr;
       smoothedDb = smoothedDb ? smoothedDb * 0.82 + instantDb * 0.18 : instantDb;
       processDb(smoothedDb, dt);
 
@@ -901,6 +1177,17 @@
       running = true;
       lastTick = 0;
       setStatus(calibrated ? "监测已启动！开始用朗读声击退苦力怕。" : "监测已启动！建议先点分贝校准再开始。", "ok");
+      sessionSeconds = 0;
+      sessionDbSamples = 0;
+      sessionDbSum = 0;
+      sessionDbSqSum = 0;
+      sessionEnergySwing = 0;
+      sessionPrevDb = 0;
+      sessionZcrSum = 0;
+      sessionZcrSqSum = 0;
+      sessionHighEnergyTime = 0;
+      lastScore = null;
+      scoreDetailEl.textContent = "评分进行中：保持自然语速与抑扬顿挫，停止后将生成结果。";
       rafId = requestAnimationFrame(loop);
     }
 
@@ -925,7 +1212,12 @@
       timeData = null;
 
       if (showText && !gameOver) {
-        setStatus("监测已停止。", "warn");
+        const score = finalizeReadingScore();
+        if (score) {
+          setStatus(`监测已停止：朗读评分 ${score.total} 分（语调${score.toneScore}/语速${score.speedScore}/感情${score.emotionScore}）。`, "warn");
+        } else {
+          setStatus("监测已停止。", "warn");
+        }
       }
     }
 
@@ -950,6 +1242,8 @@
 
     updateHud();
     renderZombieTransform();
+    renderCreeperForm();
+    renderScoreHistory();
   </script>
 </body>
 </html>
